@@ -38,6 +38,50 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/debug/notice")
+async def debug_notice():
+    import os
+    import requests
+    from bs4 import BeautifulSoup
+
+    login_id = os.getenv("NARAEBAEUM_ID", "")
+    login_pw = os.getenv("NARAEBAEUM_PW", "")
+
+    if not login_id or not login_pw:
+        return {"error": "환경변수 미설정", "NARAEBAEUM_ID": bool(login_id), "NARAEBAEUM_PW": bool(login_pw)}
+
+    session = requests.Session()
+    session.headers.update({"User-Agent": "Mozilla/5.0"})
+
+    # 로그인 시도
+    login_resp = session.post(
+        "https://e-learning.nhi.go.kr/sso/ssoControl.do",
+        data={"loginId": login_id, "loginPwd": login_pw},
+        timeout=10,
+        allow_redirects=True,
+    )
+
+    # 공지사항 요청
+    notice_resp = session.post(
+        "https://e-learning.nhi.go.kr/study/announce/setAnnounceList.do",
+        data={},
+        timeout=10,
+    )
+
+    soup = BeautifulSoup(notice_resp.text, "html.parser")
+    logged_in = "로그인" not in soup.title.string if soup.title else False
+    rows = soup.select("div.tbl-type5 table tbody tr td.ta-left")
+
+    return {
+        "login_status": login_resp.status_code,
+        "login_url_final": login_resp.url,
+        "notice_status": notice_resp.status_code,
+        "logged_in": logged_in,
+        "notice_count": len(rows),
+        "first_notice": rows[0].get_text(strip=True) if rows else None,
+    }
+
+
 @app.post("/webhook/kakao")
 async def kakao_webhook(request: Request):
     body = await request.json()
