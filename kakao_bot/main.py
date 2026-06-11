@@ -41,6 +41,7 @@ async def health():
 @app.get("/debug/notice")
 async def debug_notice():
     import os
+    import traceback
     import requests
     from bs4 import BeautifulSoup
 
@@ -50,36 +51,39 @@ async def debug_notice():
     if not login_id or not login_pw:
         return {"error": "환경변수 미설정", "NARAEBAEUM_ID": bool(login_id), "NARAEBAEUM_PW": bool(login_pw)}
 
-    session = requests.Session()
-    session.headers.update({"User-Agent": "Mozilla/5.0"})
+    try:
+        session = requests.Session()
+        session.headers.update({"User-Agent": "Mozilla/5.0"})
 
-    # 로그인 시도
-    login_resp = session.post(
-        "https://e-learning.nhi.go.kr/sso/ssoControl.do",
-        data={"loginId": login_id, "loginPwd": login_pw},
-        timeout=10,
-        allow_redirects=True,
-    )
+        login_resp = session.post(
+            "https://e-learning.nhi.go.kr/sso/ssoControl.do",
+            data={"loginId": login_id, "loginPwd": login_pw},
+            timeout=15,
+            allow_redirects=True,
+        )
 
-    # 공지사항 요청
-    notice_resp = session.post(
-        "https://e-learning.nhi.go.kr/study/announce/setAnnounceList.do",
-        data={},
-        timeout=10,
-    )
+        notice_resp = session.post(
+            "https://e-learning.nhi.go.kr/study/announce/setAnnounceList.do",
+            data={},
+            timeout=15,
+        )
 
-    soup = BeautifulSoup(notice_resp.text, "html.parser")
-    logged_in = "로그인" not in soup.title.string if soup.title else False
-    rows = soup.select("div.tbl-type5 table tbody tr td.ta-left")
+        soup = BeautifulSoup(notice_resp.text, "html.parser")
+        title = soup.title.string.strip() if soup.title else "없음"
+        rows = soup.select("div.tbl-type5 table tbody tr td.ta-left")
 
-    return {
-        "login_status": login_resp.status_code,
-        "login_url_final": login_resp.url,
-        "notice_status": notice_resp.status_code,
-        "logged_in": logged_in,
-        "notice_count": len(rows),
-        "first_notice": rows[0].get_text(strip=True) if rows else None,
-    }
+        return {
+            "login_status": login_resp.status_code,
+            "login_url_final": str(login_resp.url),
+            "notice_status": notice_resp.status_code,
+            "page_title": title,
+            "logged_in": "로그인" not in title,
+            "notice_count": len(rows),
+            "first_notice": rows[0].get_text(strip=True) if rows else None,
+            "notice_html_snippet": notice_resp.text[500:1000],
+        }
+    except Exception:
+        return {"error": traceback.format_exc()}
 
 
 @app.post("/webhook/kakao")
