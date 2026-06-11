@@ -450,15 +450,15 @@
     },
     {
       "time": "14:00~17:00",
-      "title": "",
-      "location": "",
-      "instructor": ""
-    },
-    {
-      "time": "17:00~18:00",
       "title": "효율적인 업무 수행을 위한 한글 사용법",
       "location": "",
       "instructor": "박소정 강사"
+    },
+    {
+      "time": "17:00~18:00",
+      "title": "일일정리",
+      "location": "",
+      "instructor": ""
     }
   ],
   "2026-06-15": [
