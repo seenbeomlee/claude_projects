@@ -1,5 +1,6 @@
 import os
-from coolsms import Message
+
+from solapi import SolapiMessageService
 
 _api_key = os.getenv("COOLSMS_API_KEY", "")
 _api_secret = os.getenv("COOLSMS_API_SECRET", "")
@@ -14,9 +15,9 @@ def send_alimtalk(title: str, url: str) -> None:
         print(f"[알림톡 미발송 - 환경변수 미설정] {title}")
         return
 
-    msg = Message(_api_key, _api_secret)
-    msg.send_many({
-        "type": "ATA",                  # 알림톡
+    service = SolapiMessageService(api_key=_api_key, api_secret=_api_secret)
+    service.send({
+        "type": "ATA",
         "to": _recipient,
         "from": _sender,
         "kakaoOptions": {
