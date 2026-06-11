@@ -41,6 +41,9 @@ def _make_session() -> requests.Session:
         session.post(LOGIN_URL, data={
             "loginId": LOGIN_ID,
             "loginPwd": LOGIN_PW,
+            "return_url": "/",
+            "rtnUrl": "/",
+            "grantType": "owner_password",
         }, timeout=10)
     return session
 
