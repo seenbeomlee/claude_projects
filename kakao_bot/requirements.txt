@@ -1,0 +1,7 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+apscheduler==3.10.4
+requests==2.32.3
+beautifulsoup4==4.12.3
+python-dotenv==1.0.1
+coolsms-python-sdk==4.3.0
