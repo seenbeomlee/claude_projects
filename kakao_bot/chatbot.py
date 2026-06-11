@@ -1,7 +1,10 @@
 import json
 import re
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+_KST = ZoneInfo("Asia/Seoul")
 
 from scraper import get_recent_notices
 
@@ -17,7 +20,7 @@ def load_schedule() -> dict:
 
 def parse_date(utterance: str) -> str | None:
     """발화에서 날짜를 추출하여 YYYY-MM-DD 형식으로 반환."""
-    today = date.today()
+    today = datetime.now(_KST).date()
 
     if "오늘" in utterance:
         return today.isoformat()
