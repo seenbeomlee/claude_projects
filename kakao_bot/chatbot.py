@@ -3,6 +3,8 @@ import re
 from datetime import date, timedelta
 from pathlib import Path
 
+from scraper import get_recent_notices
+
 SCHEDULE_FILE = Path(__file__).parent / "schedule_data.json"
 
 
@@ -93,6 +95,20 @@ def handle_webhook(body: dict) -> dict:
             "날짜를 함께 말씀해 주세요.\n예) '6월 11일 일정'"
         )
 
+    # 공지사항 조회
+    if any(k in utterance for k in ["공지", "공지사항"]):
+        try:
+            notices = get_recent_notices()
+            if notices:
+                lines = ["📢 최근 공지사항\n"]
+                for n in notices[:5]:
+                    lines.append(f"• [{n['date']}] {n['title']}")
+                return build_kakao_response("\n".join(lines))
+            else:
+                return build_kakao_response("공지사항을 불러올 수 없습니다.\n(로그인 정보를 확인해 주세요)")
+        except Exception as e:
+            return build_kakao_response(f"공지사항 조회 중 오류가 발생했습니다.")
+
     return build_kakao_response(
-        "안녕하세요! 교육 일정을 물어보실 때는 날짜를 함께 말씀해 주세요.\n예) '6월 11일 일정'"
+        "안녕하세요! 아래 기능을 사용할 수 있습니다.\n\n📅 일정 조회\n예) '오늘 일정', '6월 12일 일정'\n\n📢 공지사항\n예) '공지사항'"
     )
