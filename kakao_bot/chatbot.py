@@ -1,12 +1,10 @@
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 _KST = ZoneInfo("Asia/Seoul")
-
-from scraper import get_recent_notices
 
 SCHEDULE_FILE = Path(__file__).parent / "schedule_data.json"
 
@@ -19,7 +17,6 @@ def load_schedule() -> dict:
 
 
 def parse_date(utterance: str) -> str | None:
-    """발화에서 날짜를 추출하여 YYYY-MM-DD 형식으로 반환."""
     today = datetime.now(_KST).date()
 
     if "오늘" in utterance:
@@ -29,23 +26,19 @@ def parse_date(utterance: str) -> str | None:
     if "모레" in utterance:
         return (today + timedelta(days=2)).isoformat()
 
-    # "6월 11일", "6월11일" 패턴
     m = re.search(r"(\d{1,2})월\s*(\d{1,2})일", utterance)
     if m:
         month, day = int(m.group(1)), int(m.group(2))
-        year = today.year
         try:
-            return date(year, month, day).isoformat()
+            return date(today.year, month, day).isoformat()
         except ValueError:
             return None
 
-    # "6/11", "06/11" 패턴
     m = re.search(r"(\d{1,2})/(\d{1,2})", utterance)
     if m:
         month, day = int(m.group(1)), int(m.group(2))
-        year = today.year
         try:
-            return date(year, month, day).isoformat()
+            return date(today.year, month, day).isoformat()
         except ValueError:
             return None
 
@@ -92,26 +85,11 @@ def handle_webhook(body: dict) -> dict:
             month, day = date_str[5:7].lstrip("0"), date_str[8:10].lstrip("0")
             return build_kakao_response(f"{month}월 {day}일 일정이 없습니다.")
 
-    # 일정 관련 키워드가 있지만 날짜 파싱 실패
     if any(k in utterance for k in ["일정", "스케줄", "시간표"]):
         return build_kakao_response(
             "날짜를 함께 말씀해 주세요.\n예) '6월 11일 일정'"
         )
 
-    # 공지사항 조회
-    if any(k in utterance for k in ["공지", "공지사항"]):
-        try:
-            notices = get_recent_notices()
-            if notices:
-                lines = ["📢 최근 공지사항\n"]
-                for n in notices[:5]:
-                    lines.append(f"• [{n['date']}] {n['title']}")
-                return build_kakao_response("\n".join(lines))
-            else:
-                return build_kakao_response("공지사항을 불러올 수 없습니다.\n(로그인 정보를 확인해 주세요)")
-        except Exception as e:
-            return build_kakao_response(f"공지사항 조회 중 오류가 발생했습니다.")
-
     return build_kakao_response(
-        "안녕하세요! 아래 기능을 사용할 수 있습니다.\n\n📅 일정 조회\n예) '오늘 일정', '6월 12일 일정'\n\n📢 공지사항\n예) '공지사항'"
+        "안녕하세요! 일정을 조회할 수 있습니다.\n\n📅 일정 조회\n예) '오늘 일정', '6월 12일 일정'"
     )
