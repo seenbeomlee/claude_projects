@@ -55,9 +55,24 @@ async def debug_notice():
         session = requests.Session()
         session.headers.update({"User-Agent": "Mozilla/5.0"})
 
+        login_page = session.get("https://e-learning.nhi.go.kr/sso/ssoControl.do", timeout=15)
+        login_soup = BeautifulSoup(login_page.text, "html.parser")
+        form_data = {
+            "loginId": login_id,
+            "loginPwd": login_pw,
+            "return_url": "/",
+            "rtnUrl": "/",
+            "grantType": "owner_password",
+        }
+        for hidden in login_soup.select("form input[type=hidden]"):
+            name = hidden.get("name")
+            value = hidden.get("value", "")
+            if name and name not in form_data:
+                form_data[name] = value
+
         login_resp = session.post(
             "https://e-learning.nhi.go.kr/sso/ssoControl.do",
-            data={"loginId": login_id, "loginPwd": login_pw},
+            data=form_data,
             timeout=15,
             allow_redirects=True,
         )
@@ -75,6 +90,7 @@ async def debug_notice():
         return {
             "login_status": login_resp.status_code,
             "login_url_final": str(login_resp.url),
+            "hidden_fields_sent": [k for k in form_data if k not in ("loginId", "loginPwd")],
             "notice_status": notice_resp.status_code,
             "page_title": title,
             "logged_in": "로그인" not in title,

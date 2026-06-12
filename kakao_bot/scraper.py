@@ -38,13 +38,23 @@ def _make_session() -> requests.Session:
         )
     })
     if LOGIN_ID and LOGIN_PW:
-        session.post(LOGIN_URL, data={
+        login_page = session.get(LOGIN_URL, timeout=10)
+        soup = BeautifulSoup(login_page.text, "html.parser")
+
+        form_data = {
             "loginId": LOGIN_ID,
             "loginPwd": LOGIN_PW,
             "return_url": "/",
             "rtnUrl": "/",
             "grantType": "owner_password",
-        }, timeout=10)
+        }
+        for hidden in soup.select("form input[type=hidden]"):
+            name = hidden.get("name")
+            value = hidden.get("value", "")
+            if name and name not in form_data:
+                form_data[name] = value
+
+        session.post(LOGIN_URL, data=form_data, timeout=10)
     return session
 
 
