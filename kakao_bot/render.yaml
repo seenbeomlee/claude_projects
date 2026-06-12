@@ -2,26 +2,6 @@ services:
   - type: web
     name: kakao-bot
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: NARAEBAEUM_ID
-        sync: false
-      - key: NARAEBAEUM_PW
-        sync: false
-      - key: NARAEBAEUM_NOTICE_URL
-        sync: false
-      - key: NARAEBAEUM_MATERIAL_URL
-        sync: false
-      - key: COOLSMS_API_KEY
-        sync: false
-      - key: COOLSMS_API_SECRET
-        sync: false
-      - key: KAKAO_SENDER_KEY
-        sync: false
-      - key: KAKAO_TEMPLATE_CODE
-        sync: false
-      - key: RECIPIENT_PHONE
-        sync: false
-      - key: SENDER_PHONE
-        sync: false
