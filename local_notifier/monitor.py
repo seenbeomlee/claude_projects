@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from notifier import send_alimtalk
+from notifier import send_notification
 from scraper import check_for_new_notices
 
 INTERVAL_MINUTES = 15
@@ -18,7 +18,7 @@ def run() -> None:
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] 신규 공지 {len(new_notices)}건 발견")
                 for notice in new_notices:
                     print(f"  - [{notice['date']}] {notice['title']}")
-                    send_alimtalk(notice["title"])
+                    send_notification(notice["title"])
             else:
                 print(f"[{datetime.now().strftime('%H:%M:%S')}] 신규 공지 없음")
         except Exception as e:
